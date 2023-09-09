@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option java_package = "com.sydowma.protocol";
+option java_outer_classname = "MessageTypeEnumProto";
+
+
+enum MessageType {
+  DEFAULT = 0;
+
+
+}

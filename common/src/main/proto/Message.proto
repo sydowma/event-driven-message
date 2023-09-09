@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option java_package = "com.sydowma.protocol";
+option java_outer_classname = "MessageProto";
+
+import "MessageTypeEnum.proto";
+
+message Message {
+  int64 time = 1;
+  MessageType messageType = 2;
+
+  oneof message {
+    UserRegister userRegister = 10;
+    UserLogin userLogin = 11;
+  }
+
+  message UserRegister {
+    int64 userId = 1;
+    string email = 2;
+  }
+
+  message UserLogin {
+    int64 userId = 1;
+  }
+}
