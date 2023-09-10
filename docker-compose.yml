@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  # Kafka setup without Zookeeper (using KRaft mode)
+  kafka:
+    image: bitnami/kafka:3.5.1
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_KRAFT_MODE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  # MySQL setup with a recent version
+  mysql:
+    image: mysql:8.0.26
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: testdb
+    command: ["--server-id=1", "--log-bin=mysql-bin", "--binlog-format=ROW", "--binlog-row-image=FULL", "--enforce-gtid-consistency=ON", "--gtid-mode=ON"]
+
+  # Debezium setup for MySQL
+  debezium:
+    image: debezium/connect:1.7
+    depends_on:
+      - kafka
+      - mysql
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: debezium_configs
+      OFFSET_STORAGE_TOPIC: debezium_offsets
+      STATUS_STORAGE_TOPIC: debezium_statuses
+      CONNECT_PLUGINS_DIR: /kafka/connect/debezium-connector-mysql
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+    command:
+      - wait-for-it
+      - kafka:9092
+      - --
+      - start
