@@ -1,0 +1,43 @@
+###
+
+# curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://localhost:8083/connectors/ -d '{
+#    "name": "mysql-connector",
+#    "config": {
+#        "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+#        "database.hostname": "mysql",
+#        "database.port": "3306",
+#        "database.user": "user",
+#        "database.password": "password",
+#        "database.server.id": "1",
+#        "database.server.name": "mysql-server",
+#        "database.whitelist": "testdb",
+#        "database.history.kafka.bootstrap.servers": "kafka:9092",
+#        "database.history.kafka.topic": "schema-changes.testdb",
+#        "include.schema.changes": "true",
+#        "topic.prefix": "mysql-"
+#    }
+#}'
+POST http://localhost:8083/connectors/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "mysql-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+    "database.hostname": "mysql",
+    "database.port": "3306",
+    "database.user": "user",
+    "database.password": "password",
+    "database.server.id": "1",
+    "database.server.name": "mysql-server",
+    "database.whitelist": "testdb",
+    "database.history.kafka.bootstrap.servers": "kafka:9092",
+    "database.history.kafka.topic": "schema-changes.testdb",
+    "include.schema.changes": "true",
+    "topic.prefix": "mysql-"
+  }
+}
+
+###
+
