@@ -33,7 +33,7 @@ Content-Type: application/json
     "database.server.name": "mysql-server",
     "database.whitelist": "testdb",
     "database.history.kafka.bootstrap.servers": "kafka:9092",
-    "database.history.kafka.topic": "schema-changes.testdb",
+    "database.history.kafka.topic": "dbhistory.full",
     "include.schema.changes": "true",
     "topic.prefix": "mysql-"
   }
