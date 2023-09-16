@@ -1,0 +1,16 @@
+###
+
+# curl -X PUT -H "Content-Type: application/json" --data 'YOUR_JSON_CONFIG' http://localhost:8083/connectors/mysql-connector/config
+PUT http://localhost:8083/connectors/mysql-connector/config
+Content-Type: application/json
+
+{
+
+    "schema.history.internal.kafka.topic": "dbhistory.testdb",
+    "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector"
+
+}
+
+###
+
