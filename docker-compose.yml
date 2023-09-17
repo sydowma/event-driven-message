@@ -1,6 +1,17 @@
 version: '3'
 
 services:
+  data-process:
+    image: data-process:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+      - mysql
+      - debezium
   # Kafka setup without Zookeeper (using KRaft mode)
   kafka:
     image: bitnami/kafka:3.5.1

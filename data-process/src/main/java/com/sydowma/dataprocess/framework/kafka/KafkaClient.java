@@ -1,29 +1,66 @@
 package com.sydowma.dataprocess.framework.kafka;
 
+import jakarta.annotation.PostConstruct;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+@Component
 public class KafkaClient {
 
     private KafkaConsumer<String, byte[]> kafkaConsumer;
 
+
+    private Set<String> currentTopics = new HashSet<>();
+    private Map<String, Object> props;
+
     public KafkaClient() {
-        Map<String, Object> pro = new HashMap<>();
-        pro.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
-        pro.put("group.id", "test");
-        pro.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        pro.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        this.kafkaConsumer = new KafkaConsumer<>(pro);
+    }
+
+    @PostConstruct
+    public void init() {
+        props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        props.put("group.id", "test");
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+        this.kafkaConsumer = new KafkaConsumer<>(props);
         kafkaConsumer.subscribe(Pattern.compile(".*"));
+    }
+
+    @Scheduled(fixedDelay = 6000) // Check for new topics every 6 seconds
+    public void discoverTopics() {
+        try (AdminClient adminClient = AdminClient.create(props)) {
+            ListTopicsResult listTopics = adminClient.listTopics();
+            Set<String> topics = listTopics.names().get();
+
+            if (!currentTopics.containsAll(topics)) {
+                kafkaConsumer.subscribe(topics);
+                currentTopics = topics;
+            }
+        } catch (Exception e) {
+            // Handle any exceptions that arise
+            e.printStackTrace();
+        }
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void start() {
+        new Thread(this::poll).start();
     }
 
     public void poll() {
@@ -36,9 +73,9 @@ public class KafkaClient {
 
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        KafkaClient kafkaClient = new KafkaClient();
-        kafkaClient.poll();
-        TimeUnit.MINUTES.sleep(10);
-    }
+//    public static void main(String[] args) throws InterruptedException {
+//        KafkaClient kafkaClient = new KafkaClient();
+//        kafkaClient.poll();
+//        TimeUnit.MINUTES.sleep(10);
+//    }
 }
