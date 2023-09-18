@@ -35,7 +35,42 @@ Content-Type: application/json
     "schema.history.internal.kafka.topic": "dbhistory.your-database-name",
     "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
     "include.schema.changes": "true",
-    "topic.prefix": "mysql-"
+    "topic.prefix": "mysql_"
+  }
+}
+
+###
+
+# curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://127.0.0.1:8083/connectors/ -d '{
+#    "name": "mongodb-connector",
+#    "config": {
+#        "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+#        "mongodb.hosts": "mongodb:27017",
+#        "mongodb.user": "root",
+#        "mongodb.password": "rootpassword",
+#        "mongodb.name": "testdb",
+#        "database.whitelist": "testdb",
+#        "tasks.max": "1",
+#        "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+#        "value.converter": "org.apache.kafka.connect.json.JsonConverter"
+#    }
+#}'
+POST http://127.0.0.1:8083/connectors/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "mongodb-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+    "mongodb.hosts": "mongodb:27017",
+    "mongodb.user": "root",
+    "mongodb.password": "rootpassword",
+    "mongodb.name": "testdb",
+    "database.whitelist": "testdb",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "topic.prefix": "mongodb_"
   }
 }
 

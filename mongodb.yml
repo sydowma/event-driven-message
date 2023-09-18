@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  data-process:
+    image: data-process:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+      - mysql
+      - debezium
+  # Kafka setup without Zookeeper (using KRaft mode)
+  kafka:
+    image: bitnami/kafka:3.5.1
+    environment:
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+  # MySQL setup with a recent version
+  mysql:
+    image: mysql:8.0.34
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: testdb
+    command: ["--server-id=1", "--log-bin=mysql-bin", "--binlog-format=ROW", "--binlog-row-image=FULL", "--enforce-gtid-consistency=ON", "--gtid-mode=ON"]
+  # Debezium setup for MySQL
+  debezium:
+    image: debezium/connect:2.3
+    ports:
+      - "8083:8083"
+    depends_on:
+      - kafka
+      - mysql
+      - mongodb
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: debezium_configs
+      OFFSET_STORAGE_TOPIC: debezium_offsets
+      STATUS_STORAGE_TOPIC: debezium_statuses
+      CONNECT_PLUGINS_DIR: "/kafka/connect/debezium-connector-mysql,/kafka/connect/debezium-connector-mongodb"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+    volumes:
+      - ./create-connector.sh:/scripts/create-connector.sh
+#    command:
+#      - /scripts/create-connector.sh

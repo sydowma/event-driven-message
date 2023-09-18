@@ -5,3 +5,6 @@ DELETE http://localhost:8083/connectors/mysql-connector
 
 ###
 
+
+DELETE http://localhost:8083/connectors/mongodb-connector
+

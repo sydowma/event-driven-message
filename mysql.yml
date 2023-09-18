@@ -34,7 +34,17 @@ services:
       MYSQL_PASSWORD: password
       MYSQL_DATABASE: testdb
     command: ["--server-id=1", "--log-bin=mysql-bin", "--binlog-format=ROW", "--binlog-row-image=FULL", "--enforce-gtid-consistency=ON", "--gtid-mode=ON"]
-
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: testdb
+    command: ["mongod", "--auth", "--replSet", "rs0", "--keyFile", "/etc/mongo/mongo-keyfile"]
+    volumes:
+      - ./mongo-keyfile:/etc/mongo/mongo-keyfile:ro
   # Debezium setup for MySQL
   debezium:
     image: debezium/connect:2.3
@@ -43,13 +53,18 @@ services:
     depends_on:
       - kafka
       - mysql
+      - mongodb
     environment:
       BOOTSTRAP_SERVERS: kafka:9092
       GROUP_ID: 1
       CONFIG_STORAGE_TOPIC: debezium_configs
       OFFSET_STORAGE_TOPIC: debezium_offsets
       STATUS_STORAGE_TOPIC: debezium_statuses
-      CONNECT_PLUGINS_DIR: /kafka/connect/debezium-connector-mysql
+      CONNECT_PLUGINS_DIR: "/kafka/connect/debezium-connector-mysql,/kafka/connect/debezium-connector-mongodb"
       CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+    volumes:
+      - ./create-connector.sh:/scripts/create-connector.sh
+#    command:
+#      - /scripts/create-connector.sh
