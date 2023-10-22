@@ -2,9 +2,9 @@ package com.sydowma.dataprocess.framework.engine;
 
 import com.lmax.disruptor.EventFactory;
 
-public class DisruptorFactory implements EventFactory<Event> {
+public class DisruptorFactory implements EventFactory<EventWrapper> {
     @Override
-    public Event newInstance() {
+    public EventWrapper newInstance() {
         return null;
     }
 }
